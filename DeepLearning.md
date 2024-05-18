@@ -1,1 +1,8 @@
-
+<h2>Books to Read</h2>
+<p>We believe that you learn best when you are exposed to multiple perspectives on the same idea. As such, we recommend checking out a few of the books below to get an added perspective on Deep Learning.
+</p>
+<div><a href="https://www.manning.com/books/grokking-deep-learning">Grokking Deep Learning</a> by Andrew Trask. Use our exclusive discount code traskud17 for 40% off. This provides a very gentle introduction to Deep Learning and covers the intuition more than the theory.</div>
+<div><a href="http://neuralnetworksanddeeplearning.com">Neural Networks And Deep Learning</a> by Michael Nielsen. This book is more rigorous than Grokking Deep Learning and includes a lot of fun, interactive visualizations to play with.</div>
+<div><a href="https://www.manning.com/books/inside-deep-learning">Inside Deep Learning</a> by Edward Raff is an excellent intermediate book that covers much of the mathematical background, in-depth looks at modern neural network architectures, and develops a good intuition.</div>
+<div><a href="https://www.deeplearningbook.org/">The Deep Learning Textbook</a> from Ian Goodfellow, Yoshua Bengio, and Aaron Courville. Often simply called "the Deep Learning book", it is a rigorous treatment of the mathematics and theory behind deep learning, in addition to covering a number of important practical issues.</div>
+<div><a href="https://link.springer.com/book/10.1007/978-3-030-36721-3">Deep Learning Architectures</a> by Ovidiu Calin is by far the most theoretical book on this list, and the most challenging in terms of mathematical prerequisites. However, if you want to conduct groundbreaking research in neural networks, this book is an excellent reference to have on hand.</div>
