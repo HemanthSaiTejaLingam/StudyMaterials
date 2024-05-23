@@ -27,3 +27,67 @@
   <p>Generally speaking, underfitting tends to happen with neural networks that have overly simple architecture, while overfitting tends to happen with models that are highly complex.</p>
   <p>The bad news is, it's really hard to find the right architecture for a neural network. There is a tendency to create a network that either has overly simplistic architecture or overly complicated architecture. In general terms, the approach we will take is to err on the side of an overly complicated model, and then we'll apply certain techniques to reduce the risk of overfitting.</p>
 </div>
+<div>
+  <h2>Early Stopping</h2>
+  <p>When training our neural network, we start with random weights in the first epoch and then change these weights as we go through additional epochs. Initially, we expect these changes to improve our model as the neural network fits the training data more closely. But after some time, further changes will start to result in overfitting.</p>
+  <p>We can monitor this by measuring both the <b>training error</b> and the <b>testing error</b>. As we train the network, the training error will go down—but at some point, the testing error will start to increase. This indicates overfitting and is a signal that we should stop training the network prior to that point. We can see this relationship in a <b>model complexity graph</b> like this one:</p>
+  <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/2e510be0-7940-4df7-9974-5427b2374508'>
+  <p>Have a look at the graph and make sure you can recognize the following:</p>
+  <ul>
+    <li>On the Y-axis, we have a measure of the error and on the X-axis we have a measure of the complexity of the model (in this case, it's the number of epochs).</li>
+    <li>On the left we have high testing and training error, so we're underfitting.</li>
+    <li>On the right, we have high testing error and low training error, so we're overfitting.</li>
+    <li>Somewhere in the middle, we have our happy Goldilocks point (the point that is "just right").</li>
+  </ul>
+  <p>In summary, we do gradient descent until the testing error stops decreasing and starts to increase. At that moment, we stop. This algorithm is called <b>early stopping</b> and is widely used to train neural networks.</p>
+</div>
+<div>
+  <h2>How to Use Tensorboard</h2>
+  <p>After launching Tensorboard from the command line and choosing a directory for the logs, we use the <b>SummaryWriter</b> class from <b>torch.utils.tensorboard</b>. Using the <b>add_scalar</b> method, we can write things like loss and accuracy. We can also put images and figures into Tensorboard using <b>add_image</b> and <b>add_figure</b> respectively.</p>
+  <p>For further information, check the<a href='https://pytorch.org/docs/stable/tensorboard.html'>PyTorch Tensorboard documentation</a></p>
+</div>
+<div>
+  <h2>Regularization</h2>
+  <h5>Considering the Activation Functions</h5>
+  <p>A key point here is to consider the activation functions of these two equations:</p>
+  <img src=''>![image](https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/96a1b0c3-72c6-4503-b64d-3f639f26ae20)
+  <ul>
+    <li>When we apply sigmoid to small values such as 𝑥1+𝑥2, we get the function on the left, which has a nice slope for gradient descent.</li>
+    <li>When we multiply the linear function by 10 and take sigmoid of 10𝑥1+10𝑥2, our predictions are much better since they're closer to zero and one. But the function becomes much steeper and it's much harder to do graident descent.</li>
+  </ul>
+  <p>Conceptually, the model on the right is too certain and it gives little room for applying gradient descent. Also, the points that are classified incorrectly in the model on the right will generate large errors and it will be hard to tune the model to correct them.</p>
+  <p>Now the question is, how do we prevent this type of overfitting from happening? The trouble is that large coefficients are leading to overfitting, so what we need to do is adjust our error function by, essentially, penalizing large weights.
+<br>
+If you recall, our original error function looks like this:</p>
+  <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/6913925f-d5dd-4c00-a132-f7aefb0be843'>
+<p>We want to take this and add a term that is big when the weights are big. There are two ways to do this. One way is to add the sums of absolute values of the weights times a constant lambda:</p>
+  <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/51b3b215-92c2-47df-97f9-d2067fb082cc'>
+  <p>The other one is to add the sum of the squares of the weights times that same constant:</p>
+  <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/99a84cbc-ae49-4b1a-9479-f8b75a5d1965'>
+</div>
+<div>
+  <h2>L1 vs L2 Regularization</h2>
+  <p>The first approach (using absolute values) is called <b>L1 regularization</b>, while the second (using squares) is called <b>L2 regularization</b>. Here are some general guidelines for deciding between the two:</p>
+  <h3>L1 Regularization</h3>
+  <ul>
+    <li>L1 tends to result in sparse vectors. That means small weights will tend to go to zero.</li>
+    <li>If we want to reduce the number of weights and end up with a small set, we can use L1.</li>
+    <li>L1 is also good for feature selection. Sometimes we have a problem with hundreds of features, and L1 regularization will help us select which ones are important, turning the rest into zeroes.</li>
+  </ul>
+  <h3>L2 Regularization</h3>
+  <ul>
+    <li>L2 tends not to favor sparse vectors since it tries to maintain all the weights homogeneously small.</li>
+    <li>L2 gives better results for training models so it's the one we'll use the most.</li>
+  </ul>
+</div>
+<div>
+  <h2>Dropout</h2>
+  <h3>Turning off Weights to Balance Training</h3>
+  <p>When training a neural network, sometimes one part of the network has very large weights and it ends up dominating the training, while another part of the network doesn't really play much of a role (so it doesn't get trained).</p>
+  <p>To solve this, we can use a method called <b>dropout</b> in which we turn part of the network off and let the rest of the network train:</p>
+  <ul>
+    <li>We go through the epochs and randomly turn off some of the nodes. This forces the other nodes to pick up the slack and take a larger part in the training.</li>
+    <li>To drop nodes, we give the algorithm a parameter that indicates the probability that each node will get dropped during each epoch. For example, if we set this parameter to 0.2, this means that during each epoch, each node has a 20% probability of being turned off.</li>
+    <li>Note that some nodes may get turned off more than others and some may never get turned off. This is OK since we're doing it over and over; on average, each node will get approximately the same treatment.</li>
+  </ul>
+</div>
