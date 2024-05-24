@@ -91,3 +91,63 @@ If you recall, our original error function looks like this:</p>
     <li>Note that some nodes may get turned off more than others and some may never get turned off. This is OK since we're doing it over and over; on average, each node will get approximately the same treatment.</li>
   </ul>
 </div>
+<div>
+  <h2>Getting Stuck in Local Minima</h2>
+  <p>Gradient descent looks at the direction where it can most decrease the error and then it takes a step in that direction. However, if there are multiple low points in the solution space, gradient descent may end up leading us to <b>local minima</b>b>—solutions where the error is at the lowest point in the local area, but not the lowest point overall.</p>
+    <h2>Random Restart</h2>
+    <p>One way to solve our problem is to use <b>random restart</b>. We start (and restart) from a few different random places and do gradient descend from all of them. This increases the probability that we'll get to the global minimum, or at least a pretty good local minimum</p>
+</div>
+<div>
+  <h2>Gradients and Activation Functions</h2>
+  <p>Both vanishing and exploding gradients are more common in deeper networks. However, the phenomena of vanishing and exploding gradients differ in one major way: they are caused by different properties of activation functions used in the hidden layers. So-called "saturating" activation functions -- those that have a bounded range, can cause vanishing gradients. Meanwhile, unbounded activation functions can cause exploding gradients.</p>
+  <h2>Pushing Past Local Minima</h2>
+  <p>Another way to solve the local minimum problem is with momentum. Momentum is a constant 𝛽 between 0 and 1.
+  <br>
+  We use β to get a sort of weighted average of the previous steps:
+  <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/c1624e46-3353-437f-acba-f094a0b1ea2c'
+  </p>
+  <p>The previous step gets multiplied by 1, the one before it gets multiplied by β, the one before that by 𝛽^2 the one before that by 𝛽^3, and so on. Because 𝛽has a value between 0 and 1, raising it to increasingly large powers means that the value will get smaller and smaller. In this way, the steps that happened a long time ago will be multiplied by tiny values and thus matter less than the ones that happened recently.
+<br>
+This can get us over "humps" and help us discover better minima. Once we get to the global minimum, the momentum will still be pushing us away, but not as much.</p>
+  <h2>Choosing an Optimizer</h2>
+  <p>Our choice of optimizer is not often the most important decision in training a model, but it can definitely make a difference. While Adam is a good default, the use of SGD is still common. The various optimizers available in PyTorch are covered in the <a href=''>torch.optim documentation</a></p>
+</div>
+<div>
+  <h2>Batch Gradient Descent</h2>
+  <p>First, let's review our <strong>batch gradient descent</strong> algorithm:</p>
+  <ul>
+      <li>In order to decrease error, we take a bunch of steps following the negative of the gradient, which is the error function.</li>
+      <li>Each step is called an <em>epoch</em>.</li>
+      <li>In each epoch, we take our input (all of our data) and run it through the entire neural network.</li>
+      <li>Then we find our predictions and calculate the error (how far the predictions are from the actual labels).</li>
+      <li>Finally, we back-propagate this error in order to update the weights in the neural network. This will give us a better boundary for predicting our data.</li>
+  </ul>
+  <p>If we have a large number of data points then this process will involve huge matrix computations, which would use a lot of memory.</p>
+</div>
+
+<div>
+    <h2>Stochastic Gradient Descent</h2>
+    <p>To expedite this, we can use only <em>some</em> of our data at each step. If the data is well-distributed then a subset of the data can give us enough information about the gradient.</p>
+    <p>This is the idea behind <strong>stochastic gradient descent</strong>. We take small subsets of the data and run them through the neural network, calculating the gradient of the error function based on these points and moving one step in that direction.</p>
+    <p>We still want to use all our data, so what we do is the following:</p>
+    <ul>
+        <li>Split the data into several batches.</li>
+        <li>Take the points in the first batch and run them through the neural network.</li>
+        <li>Calculate the error and its gradient.</li>
+        <li>Back-propagate to update the weights (which will define a better boundary region).</li>
+        <li>Repeat the above steps for the rest of the batches.</li>
+    </ul>
+    <p>Notice that with this approach we take multiple steps, whereas with batch gradient descent we take only one step with all the data. Each step may be less accurate, but, in practice, it's much better to take a bunch of slightly inaccurate steps than to take only one good one.</p>
+</div>
+<div>
+    <h2>Writing Training Loops</h2>
+    <p>To write a training loop, one typically begins with the <code>for epoch in range(epochs)</code> syntax. Then, loading each batch from the dataloader, the steps of training are:</p>
+    <ul>
+        <li>Zeroing out the optimizer's gradients with <code>optimizer.zero_grad()</code></li>
+        <li>Computing the outputs with <code>net(inputs)</code></li>
+        <li>Computing the loss with <code>criterion(outputs, labels)</code></li>
+        <li>Computing the gradient of the loss with <code>loss.backward()</code></li>
+        <li>Taking an update step with the optimizer using <code>optimizer.step()</code></li>
+    </ul>
+    <p>We can also implement early stopping, compute validation loss and accuracy, and print updates in the training loop.</p>
+</div>
