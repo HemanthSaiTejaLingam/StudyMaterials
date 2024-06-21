@@ -210,3 +210,151 @@ class MyModel(nn.Module):
         return self.model(x)
 </code></pre>
 </div>
+<div>
+  <h2>Cross-Entropy Loss</h2>
+  <p>The cross-entropy loss is the typical loss used for classification problems. It can be instanced in PyTorch like this:</p>
+  <pre>
+    <code>
+from torch import nn
+loss = nn.CrossEntropyLoss()
+    </code>
+  </pre>
+  <p>
+    In the <a href="https://pytorch.org/docs/stable/" target="_blank">PyTorch documentation<span>(opens in a new tab)</span></a>,
+    you can see that the cross-entropy loss function actually involves two steps:
+</p>
+<ul>
+  <li>It first applies a softmax function to any output it sees</li>
+  <li>Then it applies <a href="https://pytorch.org/docs/stable/nn.html#nllloss" target="_blank" >NLLLoss</a>; negative log likelihood loss</li>
+</ul>
+<p>Then it returns the average loss over a batch of data.</p>
+<p>Since the <code>nn.CrossEntropyLoss</code> already applies the softmax function, the output of our network should be unnormalized class scores, and NOT probabilities. In other words, we must NOT apply softmax in the <code>forward</code> method of our network.</p>
+<h2>Another Approach</h2>
+<p>We could also separate the softmax and NLLLoss steps.</p>
+<ul>
+  <li>
+    In the <code>forward</code> function of our model, we would <em>explicitly</em> apply a softmax activation function (actually the logarithm of the softmax function, which is more numerically stable) to the output, <code>x</code>.
+  </li>
+<pre>
+  <code>
+import torch.nn.functional as F
+ ...
+ ...
+    def forward(self, x):<br>
+        ...<br>
+        # a softmax layer to convert 10 outputs 
+        # into a distribution of class probabilities
+        return F.log_softmax(x, dim=1)
+  </code>
+</pre>
+<li>Then, when defining our loss criterion, we would apply nn.NLLLoss instead of nn.CrossEntropyLoss.</li>
+</ul>
+<pre>
+  <code>
+    criterion = nn.NLLLoss()
+  </code>
+</pre>
+<p>
+  This separates the usual <code>loss = nn.CrossEntropyLoss()</code> into two steps. It is a useful approach should you want the output of a model to be class <em>probabilities</em> rather than class scores.
+</p>
+<p>
+  Typically the first approach (using the Cross Entropy Loss) is preferred during training and validation (many tools actually assume that this is the case). However, when you export your model you might want to add the softmax at the end of your <code>forward</code> method, so that at inference time the output of your model will be probabilities and not class scores.
+</p>
+<h2>The Optimizer</h2>
+<p>An optimizer is a class or a function that takes a function with parameters (typically our loss) and optimizes it. In the case of neural networks, optimization means minimization; i.e., the optimizer determines the values of the parameters that minimize the loss function. The problem indeed is formulated so that the parameters providing the minimum loss also provide the best performances.</p>
+<p>PyTorch provides many optimizers. Two common ones are vanilla Stochastic Gradient Descent (SGD) and Adam. While the former is standard Gradient Descent applied using mini-batches, the latter is a more sophisticated algorithm that often provides similar results to SGD but faster. Both of them take as parameters the learning rate <code>lr</code> and (optionally) the regularization parameter <code>weight_decay</code>.</p>
+<p>This is how to create optimizer instances in PyTorch:</p>
+<pre>
+  <code>
+import torch.optim
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=0)<br>
+import torch.optim
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=0)
+</code>
+</pre>
+<p>
+  For other options as well as other available optimizers, please see the
+  <a target="_blank" href="https://pytorch.org/docs/stable/optim.html">official documentation<span>(opens in a new tab)</span></a>.
+</p>
+<h2>The Training Loop</h2>
+<pre>
+  <code>
+# number of epochs to train the model
+n_epochs = 50
+# Set model to training mode
+# (this changes the behavior of some layers, like Dropout)
+model.train()
+# Loop over the epochs
+for epoch in range(n_epochs):
+    # monitor training loss
+    train_loss = 0.0
+    # Loop over all the dataset using the training
+    # dataloader
+    for data, target in train_dataloader:
+        # clear the gradients of all optimized variables
+        optimizer.zero_grad()
+        # forward pass: 
+        # compute predictions
+        output = model(data)
+        # calculate the loss which compare the model
+        # output for the current batch with the relative
+        # ground truth (the target)
+        loss = criterion(output, target)
+        # backward pass: 
+        # compute gradient of the loss with respect to 
+        # model parameters
+        loss.backward()
+        # perform a single optimization step (parameter update)
+        optimizer.step()
+        # update running training loss
+        train_loss += loss.item()*data.size(0)
+    # print training statistics 
+    # calculate average loss over an epoch
+    train_loss = train_loss/len(train_loader.dataset)
+  </code>
+</pre>
+<h2>Validation Set: Takeaways</h2>
+<p>We create a validation set to:</p>
+<ol role="list">
+  <li>Measure how well a model generalizes, during training</li>
+  <li>Tell us when to stop training a model; when the validation loss stops decreasing (and especially when the validation loss starts increasing and the training loss is still decreasing) we should stop training. It is actually more practical to train for a longer time than we should, but save the weights of the model at the minimum of the validation set, and then just throw away the epochs after the validation loss minimum.</li>
+</ol>
+<img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/954f7c0c-61b3-4bd3-b05d-bbad9f0b5411'>
+</div>
+<div>
+  <h2>Validation Loop</h2>
+  <p>Once we have performed an epoch of training we can evaluate the model against the validation set to see how it is doing. This is accomplished with the validation loop:
+</p>
+  <pre>
+    <code>
+# Tell pytorch to stop computing gradients for the moment
+# by using the torch.no_grad() context manager
+with torch.no_grad():
+  # set the model to evaluation mode
+  # This changes the behavior of some layers like
+  # Dropout with respect to their behavior during
+  # training
+  model.eval()
+  # Keep track of the validation loss
+  valid_loss = 0.0
+  # Loop over the batches of validation data
+  # (here we have removed the progress bar display that is
+  # accomplished using tqdm in the video, for clarity)
+  for batch_idx, (data, target) in enumerate(valid_dataloader):
+    # 1. forward pass: compute predicted outputs by passing inputs to the model
+    output = model(data)
+    # 2. calculate the loss
+    loss_value = criterion(output, target)
+
+    # Calculate average validation loss
+    valid_loss = valid_loss + (
+      (1 / (batch_idx + 1)) * (loss_value.data.item() - valid_loss)
+    )
+    # Print the losses 
+  print(f"Epoch {epoch+1}: training loss {train_loss:.5f}, valid loss {valid_loss:.5f}")
+    </code>
+  </pre>
+  <p>It is usually a good idea to wrap the validation loop in a function so you can return the validation loss for each epoch, and you can check whether the current epoch has the lowest loss so far. In that case, you save the weights of the model.</p>
+<h2>The Test Loop</h2>
+<p>The test loop is identical to the validation loop, but we of course iterate over the test dataloader instead of the validation dataloader.</p>
+</div>
