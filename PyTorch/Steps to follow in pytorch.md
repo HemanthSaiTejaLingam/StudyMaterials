@@ -345,7 +345,6 @@ with torch.no_grad():
     output = model(data)
     # 2. calculate the loss
     loss_value = criterion(output, target)
-
     # Calculate average validation loss
     valid_loss = valid_loss + (
       (1 / (batch_idx + 1)) * (loss_value.data.item() - valid_loss)
@@ -357,4 +356,8 @@ with torch.no_grad():
   <p>It is usually a good idea to wrap the validation loop in a function so you can return the validation loss for each epoch, and you can check whether the current epoch has the lowest loss so far. In that case, you save the weights of the model.</p>
 <h2>The Test Loop</h2>
 <p>The test loop is identical to the validation loop, but we of course iterate over the test dataloader instead of the validation dataloader.</p>
+</div>
+<div>
+  <h2>Typical Image Classification Steps</h2>
+  <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/b6504387-d39b-417e-87f0-6c46f8bbe640'>
 </div>
