@@ -159,3 +159,14 @@
   <h2>External Resource</h2>
   <p><a target="_blank" href="https://www.deeplearningbook.org/">Deep Learning eBook</a>(2016) authored by Ian Goodfellow, Yoshua Bengio, and Aaron Courville; published by Cambridge: MIT Press. This is a terrific free resource!</p>
 </div>
+<div>
+  <h2>Convolution on Color Images</h2>
+  <p>The kernel that was a matrix of k x k numbers for grayscale images, becomes now a 3d filter of k x k x n channels:</p>
+  <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/c7b05268-15b4-462e-8f62-64efb147972c'>
+  <h2>Multiple Convolutional Layers</h2>
+  <p>In a CNN with more than one layer, the 𝑛_𝑘 filters in the first convolutional layer will operate on the input image with 1 or 3 channels (RGB) and generate 
+𝑛_𝑘 output feature maps. So in the case of an RGB image the filters in the first convolutional layer will have a shape of kernel_size x kernel_size x 3. If we have 64 filters we will then have 64 output feature maps. Then, the second convolutional layer will operate on an input with 64 "channels" and therefore use filters that will be kernel_size x kernel_size x 64. Suppose we use 128 filters. Then the output of the second convolutional layer will have a depth of 128, so the filters of the third convolutional layer will be kernel_size x kernel_size x 128, and so on. For this reason, it is common to use the term "channels" also to indicate the feature maps of convolutional layers: a convolutional layer that takes feature maps with a depth of 64 and outputs 128 feature maps is said to have 64 channels as input and 128 as outputs.</p>
+  <h2>Number of Parameters in a Convolutional Layer</h2>
+  <p>Let's see how we can compute the number of parameters in a convolutional layer,</p>
+  <img src="https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/c8fcba0f-5ded-497e-a5b1-8c5a6c51eb43">
+</div>
