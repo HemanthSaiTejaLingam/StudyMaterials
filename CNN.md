@@ -170,3 +170,146 @@
   <p>Let's see how we can compute the number of parameters in a convolutional layer,</p>
   <img src="https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/c8fcba0f-5ded-497e-a5b1-8c5a6c51eb43">
 </div>
+<div>
+  <h2>Structure of a Typical CNN</h2>
+  <p>In a typical CNN there are several convolutional layers intertwined with Max Pooling layers. The convolutional layers have more and more feature maps as you go deeper into the network, but the size of each feature map gets smaller and smaller thanks to the Max Pooling layer.</p>
+  <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/2eec5ac6-db21-4bc3-90d2-867f06a9eb45'>
+  <p>This kind of structure goes hand in hand with the intuition we have developed in another lesson: as the signal goes deeper into the network, more and more details are dropped, and the content of the image is "abstracted." In other words, while the initial layers focus on the constituents of the objects (edges, textures, and so on), the deeper layers represent and recognize more abstract concepts such as shapes and entire objects.</p>
+</div>
+<div>
+  <h2>Feature Vectors</h2>
+  <p>A classical CNN is made of two distinct parts, sometimes called the <strong>backbone</strong> and the <strong>head</strong>, illustrated below.</p>
+  <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/2566cda3-6f36-407a-b030-67a9973bfcfe'>
+  <p>The <strong>backbone</strong> is made of convolutional and pooling layers, and has the task of extracting information from the image.</p>
+  <p>After the backbone there is a flattening layer that takes the output feature maps of the previous convolutional layer and flattens them out in a 1d vector: for each feature map the rows are stacked together in a 1d vector, then all the 1d vectors are stacked together to form a long 1d vector called a <strong>feature vector</strong> or <strong>embedding</strong>. This process is illustrated by the following image:</p>
+  <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/3585d9ea-ac5c-4f13-881e-a2ff75483e91'>
+  <p>After the flattening operation we have the <strong>head</strong> section. The head is typically just a normal MLP that takes as input the feature vector and has the appropriate output for the task. It can have one or more hidden layers, as well as other types of layers as needed (like DropOut for regularization). In case of a classification task the output dimension is equal to the number of classes, just as in a normal MLP.</p>
+</div>
+<div>
+  <h2>Optimizing the Performance of Our Network</h2>
+  <h3>Image Augmentation</h3>
+  <p>The basic idea of image augmentation is the following: if you want your network to be insensitive to changes such as rotation, translation, and dilation, you can use the same input image and rotate it, translate it, and scale it and ask the network not to change its prediction!</p>
+  <p>In practice, this is achieved by applying random transformations to the input images before they are fed to the network.</p>
+  <p>Image augmentation is a very common method to:</p>
+  <ol>
+    <li>Increase the robustness of the network</li>
+    <li>Avoid overfitting</li>
+    <li>Introduce rotational, translational and scale invariance as well as insensitiveness to color changes</li>
+    <li>Avoid <a href='https://news.mit.edu/2021/shortcut-artificial-intelligence-1102'>shortcut learning</a></li>
+  </ol>
+  <h3>Batch Normalization</h3>
+  <p>The second modern trick that paves the way for enhancing the performance of a network is called <strong>Batch Normalization</strong>, or <strong>BatchNorm</strong>. It does not usually improve the performances per se, but it allows for much easier training and a much smaller dependence on the network initialization, so in practice it makes our experimentation much easier, and allows us to more easily find the optimal solution.</p>
+  <h4>How BatchNorm Works</h4>
+  <p>Just as we normalize the input image before feeding it to the network, we would like to keep the feature maps normalized, since they are the output of one layer and the input to the next layer. In particular, we want to prevent them to vary wildly during training, because this would require large adjustments of the subsequent layers. Enter BatchNorm. BatchNorm normalizes the activations and keep them much more stable during training, making the training more stable and the convergence faster.</p>
+  <p>In order to do this, during training BatchNorm needs the mean and the variance for the activations for each mini-batch. This means that the batch size cannot be too small or the estimates for mean and variance will be inaccurate. During training, the BatchNorm layer also keeps a running average of the mean and the variance, to be used during inference.</p>
+  <p>During inference we don't have mini-batches. Therefore, the layer uses the mean and the variance computed during training (the running averages).</p>
+  <p>This means that BatchNorm behaves differently during training and during inference. The behavior changes when we set the model to training mode (using <code>model.train()</code>) or to validation mode (<code>model.eval()</code>).</p>
+  <h4>Pros and Cons of Batch Normalization</h4>
+  <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/9a44ab44-f6d2-43c3-9b27-87847683fa5e'>
+  <p>These advantages of using BatchNorm generally outweigh these disadvantages, so BatchNorm is widely used in almost all CNN implementations today.</p>
+</div>
+<div>
+  <h2>Important Terms in Optimizing Performance</h2>
+  <p><strong>Parameter</strong></p>
+  <ul>
+    <li>Internal to the model</li>
+    <li>May vary during training</li>
+    <li>Examples: Weights and biases of a network</li>
+  </ul>
+  <p><strong>Hyperparameter</strong></p>
+  <ul>
+    <li>External to the model</li>
+    <li>Fixed during training</li>
+    <li>Examples: Learning rate, number of layers, activation layers</li>
+  </ul>
+  <p><strong>Experiment</strong></p>
+  <ul>
+    <li>A specific training run with a fixed set of hyperparameters</li>
+    <li>Practitioners typically perform many experiments varying the hyperparameters. Each experiment produces one or more metrics that can be used to select the best-performing set of hyperparameters (see the next section).</li>
+  </ul>
+  <h2>Strategies for Optimizing Hyperparameters</h2>
+  <p><strong>Grid search</strong></p>
+  <ul>
+    <li>Divide the parameter space in a regular grid</li>
+    <li>Execute one experiment for each point in the grid</li>
+    <li>Simple, but wasteful</li>
+  </ul>
+  <p><strong>Random Search</strong></p>
+  <ul>
+    <li>Divide the parameter space in a random grid</li>
+    <li>Execute one experiment for each point in the grid</li>
+    <li>Much more efficient sampling of the hyperparameter space with respect to grid search</li>
+  </ul>
+  <p><strong>Bayesian Optimization</strong></p>
+  <ul>
+    <li>Algorithm for searching the hyperparameter space using a Gaussian Process model</li>
+    <li>Efficiently samples the hyperparameter space using minimal experiments</li>
+  </ul>
+  <h2>Most Important Hyperparameters</h2>
+  <p>Optimizing hyperparameters can be confusing at the beginning, so we provide you with some rules of thumb about the actions that typically matter the most. They are described in order of importance below. These are not strict rules, but should help you get started:</p>
+  <ol>
+    <li>Design parameters: When you are designing an architecture from scratch, the number of hidden layers, as well as the layers parameters (number of filters, width and so on) are going to be important.</li>
+    <li>Learning rate: Once the architecture is fixed, this is typically the most important parameter to optimize. </li>
+    <li>Batch size: This is typically the most influential hyperparameter after the learning rate. A good starting point, especially if you are using BatchNorm, is to use the maximum batch size that fits in the GPU you are using. Then you vary that value and see if that improves the performances.</li>
+    <li>Regularization: Once you optimized the learning rate and batch size, you can focus on the regularization, especially if you are seeing signs of overfitting or underfitting.</li>
+    <li>Optimizers: Finally, you can also fiddle with the other parameters of the optimizers. Depending on the optimizers, these vary. Refer to the documentation and the relevant papers linked there to discover what these parameters are.</li>
+  </ol>
+  <h2>Optimizing Learning Rate</h2>
+  <p>The learning rate is one of the most important hyperparameters. However, knowing what the optimal value is, or even what a good range is, can be challenging.</p>
+  <p>One useful tool to discover a good starting point for the learning rate is the so-called "learning rate finder." It scans different values of the learning rate, and computes the loss obtained by doing a forward pass of a mini-batch using that learning rate. Then, we can plot the loss vs. the learning rate and obtain a plot similar to this:</p>
+  <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/7a34172a-4213-424d-85cf-23f46423be6e'>
+  <h3>Learning Rate Schedulers</h3>
+  <p>In many cases we want to vary the learning rate as the training progresses. At the beginning of the training we want to make pretty large steps because we are very far from the optimum. However, as we approach the minimum of the loss, we need to make sure we do not jump over the minimum.</p>
+  <p>For this reason, it is often a good idea to use a <strong>learning rate scheduler</strong>, i.e., a class that changes the learning rate as the training progresses.</p>
+  <p>There are several possible learning rate schedulers. You can find the available ones in the <a href='https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate'>PyTorch learning rate schedulers documentation</a>.</p>
+  <p>One of the simplest one is the <code>StepLR</code> scheduler. It reduces the learning rate by a specific factor every <code>n</code> epochs. It can be used as follows:</p>
+</div>
+<div>
+  <h2>Tracking Your Experiments</h2>
+  <p>When you are performing hyperparameter optimization and other changes it is very important that you track all of your experiments. This way you will know which hyperparameters have given you which results, and you will be able to repeat those experiments, choose the best one, understand what works and what doesn't, and what you need to explore further. You will also be able to present all your results to other people.</p>
+  <p>You can of course use spreadsheets for this, or even pen and paper, but there are definitely much better ways!</p>
+  <p>Enter experiment tracking tools. There are many of them out there, and they all work in similar ways. Let's consider <a href='https://www.mlflow.org/docs/latest/tracking.html'>mlflow</a>, which is free and open source.</p>
+  <p>Tracking an experiment is easy in mlflow. You first start by creating a run. A run is a unit of execution that will contain your results. Think of it as one row in a hypothetical spreadsheet, where the columns are the things you want to track (accuracy, validation loss, ...). A run can be created like this:</p>
+  <pre><code>
+with mlflow.start_run():
+  ... your code here ...</code>
+  </pre>
+  <p>Once you have created the run, you can use <code>mlflow.log_param</code> to log a parameter (i.e., one of the hyperparameters for example) and <code>mlflow.log_metric</code> to log a result (for example the final accuracy of your model). For example, let's assume that our only hyperparameters are the learning rate and the batch size. We can track their values as well as the results obtained when using those values like this:</p>
+  <pre>
+    <code>
+import mlflow
+with mlflow.start_run():
+        ... train and validate ...
+    # Track values for hyperparameters    
+    mlflow.log_param("learning_rate", learning_rate)
+    mlflow.log_param("batch_size", batch_size)
+    # Track results obtained with those values
+    mlflow.log_metric("val_loss", val_loss)
+    mlflow.log_metric("val_accuracy", val_accuracy)
+    # Track artifacts (i.e. files produced by our experiment)
+    # For example, we can save the weights for the epoch with the
+    # lowest validation loss
+    mlflow.log_artifact("best_valid.pt")</code>
+  </pre>
+  <p>If we do this for all of our experiments, then <code>mlflow</code> will allow us to easily study the results and understand what works and what doesn't. It provides a UI that looks like this:</p>
+  <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/785fbbf7-87b1-4bff-b0ef-7fe83da6fffe'>
+  <p>But you can also look at the results in a notebook by doing:
+  <pre>
+    <code>runs = mlflow.search_runs()</code>
+  </pre>
+  <p><code>runs</code> is a pandas DataFrame that you can use to look at your results.</p>
+  <p>We barely scratched the surface about what a tracking tool like <code>mlflow</code> can do for you. For example, they track the code that runs in your experiment so you can reproduce it even if you changed the code in the meantime. If you are looking to apply what you are learning in this course in a professional environment, have a good look at tracking tools and how they can benefit you.</p>
+</p>
+</div>
+<div>
+  <h2>Weight Initialization</h2>
+  <h3>What is Weight Initialization?</h3>
+  <p>Weight initialization is a procedure that happens only once, before we start training our neural network. Stochastic Gradient Descent and other similar algorithms for minimization are iterative in nature. They start from some values for the parameters that are being optimized and they change those parameters to achieve the minimum in the objective function (the loss).</p>
+  <p>These "initial values" for the parameters are set through <strong>weight initialization</strong>.</p>
+  <p>Before the introduction of BatchNorm, weight initialization was really key to obtaining robust performances. In this previous era, a good weight initialization strategy could make the difference between an outstanding model and one that could not train at all. These days networks are much more forgiving. However, a good weight initialization can speed up your training and also give you a bit of additional performance.</p>
+  <p>In general, weights are initialized with random numbers close but not equal to zero, not too big but not too small either. This makes the gradient of the weights in the initial phases of training neither too big nor too small, which promotes fast training and good performances. Failing to initialize the weights well could result in <a href='https://en.wikipedia.org/wiki/Vanishing_gradient_problem'>vanishing or exploding gradients</a>, and the training would slow down or stop altogether.</p>
+  <h3>Weight Initialization in PyTorch</h3>
+  <p>By default, PyTorch uses specific weight initialization schemes for each type of layer. This in practice means that you rarely have to think about weight initialization, as the framework does it for you using high-performance default choices.</p>
+  <p>If you are curious, you can see how each layer is initialized by looking at the <code>reset_parameters</code> method in the code for that layer. For example, <a target="_blank" href="https://github.com/pytorch/pytorch/blob/f9d07ae6449224bdcb6eb69044a33f0fb5780adf/torch/nn/modules/linear.py#L92">this is the initialization strategy for a Linear layer</a> (i.e., a fully-connected layer), and <a target="_blank" href="https://github.com/pytorch/pytorch/blob/f9d07ae6449224bdcb6eb69044a33f0fb5780adf/torch/nn/modules/conv.py#L140">this is the initialization strategy for a Conv2d layer</a>. In both cases PyTorch uses the so-called <a target="_blank" href="https://paperswithcode.com/method/he-initialization">He initialization</a> (or Kaiming initialization).</p>
+
+</div>
