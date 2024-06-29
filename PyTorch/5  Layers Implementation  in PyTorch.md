@@ -19,7 +19,8 @@
   <p>As we have seen in the case of MLPs, the activation function must be specified as a separate layer. The same is true for the Dropout layer, which is a very effective regularizer for neural networks. In the case of CNNs, we need to use the 2d version of Dropout, which randomly drops some input channels entirely.</p>
   <p>So, a convolutional block in PyTorch looks something like:</p>
   <pre>
-    <code>conv1 = nn.Conv2d(in_channels, out_channels, kernel_size)
+    <code>
+conv1 = nn.Conv2d(in_channels, out_channels, kernel_size)
 dropout1 = nn.Dropout2d(p=0.2)
 relu1 = nn.ReLU()</code>
   </pre>
@@ -29,7 +30,8 @@ relu1 = nn.ReLU()</code>
   </pre>
   <p>We can also use <code>nn.Sequential</code>, which stacks together the layers we give as argument so they can be used as if they were one. For example we can build a convolutional block as:</p>
   <pre>
-    <code>conv_block = nn.Sequential(
+    <code>
+  conv_block = nn.Sequential(
   nn.Conv2d(in_channels, out_channels, kernel_size),
   nn.ReLU(),
   nn.Dropout2d(p=0.2)
@@ -90,4 +92,76 @@ relu1 = nn.ReLU()</code>
   <p>There are some additional optional arguments that are rarely used, but could be helpful under certain circumstances. Please refer to the <a target="_blank" href="https://pytorch.org/docs/stable/generated/torch.nn.MaxPool2d.html">PyTorch documentation on MaxPool2D</a>.</p>
   <p>Similarly, an Average Pooling Layer can be created in this way:</p>
   <pre><code>pooling = nn.AvgPool2d(window_size, stride)</code></pre>
+</div>
+<div>
+  <h2>CNN Structure</h2>
+  <p>The convolution part of a CNN is implemented in PyTorch by using the <code>nn.Conv2d</code> layer for convolution and the nn.MaxPool2d layer for max pooling. Stacking different blocks of convolution followed by pooling constitutes the typical structure of a simple CNN. Typically the sizes of the feature maps shrink as you go deeper into the network, while the channel count (i.e., the number of feature maps and filters) increases going deeper into the network, as shown below.</p>
+  <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/89072683-7177-4527-82d8-fcdc81e05c08'>
+</div>
+<div>
+  <h2>CNNs in PyTorch</h2>
+  <h3>The Typical Convolutional Block</h3>
+  <p>The typical sequence convolution -> pooling -> activation (with optional dropout) can be written in PyTorch like this:</p>
+  <pre>
+    <code>
+self.conv1 = nn.Conv2d(3, 16, 3, padding=1),
+self.pool = nn.MaxPool2d(2, 2),
+self.relu1 = nn.ReLU()
+self.drop1 = nn.Dropout2d(0.2)</code>
+  </pre>
+  <p>(or of course with the <code>nn.Sequential</code> equivalent:</p>
+  <pre>
+    <code>
+  self.conv_block = nn.Sequential(
+  nn.Conv2d(3, 16, 3, padding=1),
+  nn.MaxPool2d(2, 2),
+  nn.ReLU(),
+  nn.Dropout2d(0.2)
+)</code>
+  </pre>
+  <h3>A Simple CNN in PyTorch</h3>
+  <p>Let's now bring everything together and write our first CNN in PyTorch. We are going to have 3 convolutional blocks plus a head with a simple MLP.</p>
+  <pre>
+    <code>
+import torch
+import torch.nn as nn
+class MyCNN(nn.Module):
+  def __init__(self, n_classes):
+    super().__init__()
+    # Create layers. In this case just a standard MLP
+    self.model = nn.Sequential(
+      # First conv + maxpool + relu
+      nn.Conv2d(3, 16, 3, padding=1),
+      nn.MaxPool2d(2, 2),
+      nn.ReLU(),
+      nn.Dropout2d(0.2),
+      # Second conv + maxpool + relu
+      nn.Conv2d(16, 32, 3, padding=1),
+      nn.MaxPool2d(2, 2),
+      nn.ReLU(),
+      nn.Dropout2d(0.2),
+      # Third conv + maxpool + relu
+      nn.Conv2d(32, 64, 3, padding=1),
+      nn.MaxPool2d(2, 2),
+      nn.ReLU(),
+      nn.Dropout2d(0.2),
+      # Flatten feature maps
+      nn.Flatten(),
+      # Fully connected layers. This assumes
+      # that the input image was 32x32
+      nn.Linear(1024, 128),
+      nn.ReLU(),
+      nn.Dropout(0.5),
+      nn.Linear(128, n_classes)
+    )
+  def forward(self, x):
+    # nn.Sequential will call the layers 
+    # in the order they have been inserted
+    return self.model(x)</code>
+  </pre>
+  <p>Let's analyze what is going on in the Sequential call. We have a series of 3 convolutional parts constituted of a convolutional layer, a max pooling operation that halves the input shape, and then a ReLU activation.</p>
+  <p>We repeat this structure 3 times, varying the number of feature maps in the sequence 16 -> 32 -> 64. As we go deep, in other words, we are working with feature maps with a smaller height and width (because we keep applying max pooling) but with a higher channel count. This is very typical and helps the network with abstracting concepts.</p>
+  <p>Then, we have a <code>Flatten</code> layer that flattens our 64 feature maps (coming from the last conv layer before the flattening) into one long vector. Assuming that the input is 32x32, this vector will contain 1024 (4x4x64) numbers.</p>
+  <p>Finally, we have an MLP made of fully-connected layers that combines all the information extracted by the convolutional part and outputs one number for each class (logits). We first compress the 1024-long array into an embedding of 128 numbers, and then from there to the number of classes we have.</p>
+  <p>Since we have used the <code>nn.Sequential</code> class, the <code>forward</code> method is extremely simple and it is just calling that <code>Sequential</code> instance.</p>
 </div>
