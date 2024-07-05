@@ -118,4 +118,15 @@ class Autoencoder(nn.Module):
   </pre>
   <p>Of course, this autoencoder is not very performant. Typically you want to compress the information much more with a deeper encoder, and then uncompress it with a deeper decoder.</p>
   <p>In real-life situations, you can also use an already-existing architecture like a ResNet to extract the features (just remember to remove the final linear layers, i.e., the head and only keep the backbone). Of course, your decoder needs to then start from the embedding built by the architecture to get back to the dimension of the input image.</p>
+  <h3>Denoising</h3>
+  <p>We call <strong>denoising</strong> the task of removing noise from an image by reconstructing a denoised image</p>
+  <p>This is a task that convolutional autoencoders are well-suited for.</p>
+  <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/1e31e3da-0eb2-44f0-a509-071ab523f987'>
+  <p>A denoising autoencoder is a normal autoencoder, but trained in a specific way.</p>
+  <h3>How Do We Train a Denoising Autoencoder?</h3>
+  <p>In order to train a denoising autoencoder we need to have access to the denoised version of the images. The easiest way to do this is to build a training dataset by taking clean images and adding noise to them. Then we will feed the image with the added noise into the autoencoder, and ask it to reconstruct the denoised (original) version.</p>
+  <p>It is very important that we then compute the loss by comparing the input <i>uncorrupted image</i> (without noise) and the output of the network. DO NOT use the noisy version when computing the loss, otherwise your network will not learn!</p>
+  <h3>Why Does it Work?</h3>
+  <p>Let's consider an autoencoder trained on a noisy version of the MNIST dataset. During training, the autoencoder sees many examples of all the numbers. Each number has noisy pixels in different places. Hence, even though each number is corrupted by noise, the autoencoder can piece together a good representation for each number by learning different pieces from different examples. Here the convolutional structure helps a lot, because after a few layers the convolution smooths out a lot of the noise in a blurry but useful image of the number. This is also why generally you need to go quite deep with CNN autoencoders if you want to use them for denoising.</p>
+  <p><strong>Variational autoencoder (VAE)</strong>: An extension of the idea of autoencoders that transforms them into proper generative models.</p>
 </div>
