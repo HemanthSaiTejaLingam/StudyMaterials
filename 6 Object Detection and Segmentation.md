@@ -149,5 +149,57 @@ for images, labels in train_data_loader:
   1)Anchors<br>
   2)Feature Pyramid Networks<br>
   3)Focal loss<br>
-</p>
+  </p>
+  <h2>Intersection over Union (IoU)</h2>
+  <p>The <strong>IoU</strong> is a measure of how much two boxes (or other polygons) coincide. As the name suggests, it is the ratio between the area of the intersection, or overlap, and the area of the union of the two boxes or polygons:</p>
+  <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/c6c24d75-df29-4a47-bbb1-db49e355b14a'>
+  <p>IoU is a fundamental concept useful in many domains, and is a key metric for the evaluation of object detection algorithms.</p>
+  <h3>Mean Average Precision (mAP)</h3>
+  <p><strong>Mean Average Precision (mAP)</strong> conveys a measurement of precision averaged over the different object classes.</p>
+  <p>Let’s say we have a number of classes. We consider all the binary classification problems obtained by considering each class in turn as positive and all the others as negative.</p>
+  <p>For each one of these binary sub-problems, we start by drawing the precision-recall curve that is obtained by measuring precision and recall for different confidence level thresholds, while keeping the IoU threshold fixed (for example at 0.5). The confidence level is the classification confidence level, i.e., the maximum of the softmax probabilities coming out of the classification head. For example, we set the confidence threshold to 0.9 and measure precision and recall, then we change the threshold to say 0.89 and measure precision and recall, and so on, until we get to a threshold of 0.1. This constitutes our precision-recall curve:</p>
+<pre>
+  <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/a2d4d640-249b-480e-aa21-b6528d11e3bd'>
+  <p>Precision vs. recall with a varying confidence threshold</p>
+</pre>
+<p>We then interpolate the precision and recall curve we just obtained by using a monotonically-decreasing interpolation curve, and we take the area under the curve. This represents the so-called Average Precision (AP) for this class:</p>
+<pre>
+  <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/d45491e6-291d-4178-bb95-0a9c786204b9'>
+  <p>Precision-recall curve: original vs. interpolated</p>
+</pre>
+  <p>We repeat this procedure for all classes, then we take the average of the different APs and call that mean Average Precision, or mAP.</p>
+  <p>A related metric is called mean Average Recall (mAR). Similarly to the mAP, we split our problem into a number of binary classification problems. For each class, we compute the recall curve obtained by varying this time the IoU threshold from 0.5 to 1. We can now consider the integral of the curve. Since we integrate between 0.5 and 1, and Recall is a quantity bounded between 0 and 1, the integral would be bounded between 0 and 0.5. We therefore multiply by 2 to make it a quantity bounded between 0 and 1. Twice the area under the recall curve represents the so-called Average Recall (AR) for this class:</p>
+  <pre>
+    <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/2ddc4c2a-e673-4eec-a8f0-1d42074292cc'>
+    <p>Recall-IoU curve: Average Recall calculation</p>
+  </pre>
+  <p>We then take the average of the AR over the different classes, to define the mean Average Recall, or mAR.</p>
+  <h3>Semantic Segmentation: UNet</h3>
+  <p>The UNet is a specific architecture for semantic segmentation. It has the structure of a standard autoencoder, with an encoder that takes the input image and encodes it through a series of convolutional and pooling layers into a low-dimensional representation.</p>
+  <p>Then the decoder architecture starts from the same representation and constructs the output mask by using transposed convolutions. However, the UNet adds skip connections between the feature maps at the same level in the encoder and in the decoder, as shown below:</p>
+  <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/85cfaed5-e46f-4021-abc5-e78f2f27abc6'>
+  <p>In the decoder, the feature map coming from the decoder path is concatenated along the channel dimension with the feature map coming from the encoder path. This means that the next transposed convolution layer has access to information with high semantic content coming from the previous decoder layer, along with information with high detail coming from the encoder path. The final segmentation mask is then a lot more detailed than what you would obtain with a simple encoder-decoder architecture without skip connections between the encoder and the decoder.</p>
+  <h3>The Dice Loss</h3>
+  <p>There are a few different losses that one can use for semantic segmentation. One loss that tend to work well in practice is called Dice loss, named after Lee Raymond Dice, who published it in 1945. Here is how Dice loss is calculated:</p>
+  <img src='https://github.com/HemanthSaiTejaLingam/StudyMaterials/assets/114983155/80605b84-5229-4a5e-953c-b645ccaed86c'>
+  <p>pi and yi represent the i-th pixel in respectively the prediction mask and the ground truth mask. The sums are taken over all the n_pix pixels in the image.</p>
+  <p>The Dice loss derives from the F1 score, which is the geometric mean of precision and recall. Consequently, the Dice loss tends to balance precision and recall at the pixel level.</p>
+  <h2>UNet in PyTorch</h2>
+  <p>We will use the implementation of UNet provided by the wonderful open-source library <a target='_blank' href='https://github.com/chsasank/segmentation_models.pytorch'>segmentation_models for PyTorch</a>. The library also implements the Dice loss.</p>
+  <p>This is how you can define a UNet using this library:</p>
+  <pre>
+    <code>
+import segmentation_models_pytorch as smp
+# Binary segmentation?
+binary = True
+n_classes = 1
+model = smp.Unet(
+        encoder_name='resnet50',
+        encoder_weights='imagenet',
+        in_channels=3,
+        # +1 is for the background
+        classes=n_classes if binary else n_classes + 1)</code>
+  </pre>
+  <p>The Dice loss is simply:</p>
+  <pre><code>loss = smp.losses.DiceLoss(smp.losses.BINARY_MODE, from_logits=True)</code></pre>
 </div>
